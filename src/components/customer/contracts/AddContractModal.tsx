@@ -41,7 +41,7 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
   existingCustomerContracts,
   onSuccess,
 }) => {
-  const { addContract, updateContract, showToast, currentUser } = useApp();
+  const { addContract, updateContract, showToast, currentUser, masterData } = useApp();
 
   // Form State
   const [contractTitle, setContractTitle] = useState('');
@@ -362,11 +362,12 @@ export const AddContractModal: React.FC<AddContractModalProps> = ({
                 label="Entity"
                 value={entity}
                 onChange={(e) => setEntity(e.target.value as EntityId)}
-                options={[
-                  { value: 'PETRA', label: 'PETRA - PT Pancaran Energi Transport' },
-                  { value: 'PDT', label: 'PDT - PT Pancaran Darat Transport' },
-                  { value: 'PLI', label: 'PLI - PT Pancaran Logistik Indonesia' },
-                ]}
+                options={masterData
+                  .filter(m => m.category === 'Entity' && m.isActive)
+                  .map(m => ({
+                    value: m.code,
+                    label: `${m.code} - ${m.name}`
+                  }))}
               />
             </div>
 

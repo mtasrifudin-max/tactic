@@ -31,17 +31,24 @@ export const LogActivityModal: React.FC<LogActivityModalProps> = ({
     activityPreselectedOpportunityId,
     setActivityPreselectedOpportunityId,
     showToast,
-    entitiesMap
+    entitiesMap,
+    masterData
   } = useApp();
 
-  // Permitted entities
-  const permittedEntities = useMemo(() => {
-    const codes = Object.keys(entitiesMap) as EntityId[];
-    const assigned = currentUser.assignedEntities && currentUser.assignedEntities.length > 0
-      ? currentUser.assignedEntities
-      : codes;
-    return assigned.map(id => entitiesMap[id]).filter(Boolean);
-  }, [currentUser, entitiesMap]);
+  // Directly derive all operating entities from Master Data Entity dictionary
+  const masterEntities = useMemo(() => {
+    const items = masterData.filter(m => m.category === 'Entity' && m.isActive);
+    if (items.length > 0) {
+      return items.map(m => ({
+        id: m.code as EntityId,
+        code: m.code,
+        name: m.code,
+        fullName: m.name,
+        description: m.description || ''
+      }));
+    }
+    return Object.values(entitiesMap);
+  }, [masterData, entitiesMap]);
 
   const [entity, setEntity] = useState<EntityId>('PDT');
   const [date, setDate] = useState('2026-10-05');
@@ -92,7 +99,7 @@ export const LogActivityModal: React.FC<LogActivityModalProps> = ({
         setEntity(matchedOpp.entity);
       }
     } else {
-      const defaultEnt = (selectedEntity !== 'ALL' ? selectedEntity : (currentUser.assignedEntities?.[0] || 'PDT')) as EntityId;
+      const defaultEnt = (selectedEntity !== 'ALL' ? selectedEntity : (masterEntities[0]?.id || 'PDT')) as EntityId;
       setEntity(defaultEnt);
       setOpportunityId('');
     }
@@ -227,9 +234,9 @@ export const LogActivityModal: React.FC<LogActivityModalProps> = ({
             value={entity}
             onChange={(e) => setEntity(e.target.value as EntityId)}
           >
-            {permittedEntities.map(ent => (
+            {masterEntities.map(ent => (
               <option key={ent.id} value={ent.id}>
-                {ent.name} — {ent.fullName}
+                {ent.code} — {ent.fullName}
               </option>
             ))}
           </Select>

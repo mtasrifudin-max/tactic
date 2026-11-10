@@ -61,7 +61,8 @@ export const AddFinancialModal: React.FC<AddFinancialModalProps> = ({
     updateFinancialRecord,
     showToast,
     currentUser,
-    operationalProfiles
+    operationalProfiles,
+    masterData
   } = useApp();
 
   const isEditMode = Boolean(recordToEdit);
@@ -300,11 +301,12 @@ export const AddFinancialModal: React.FC<AddFinancialModalProps> = ({
               <Select
                 value={entity}
                 onChange={(e) => setEntity(e.target.value as EntityId)}
-                options={[
-                  { value: 'PDT', label: 'PDT - PT Pancaran Darat Transport' },
-                  { value: 'PETRA', label: 'PETRA - PT Pancaran Energi Transport' },
-                  { value: 'PLI', label: 'PLI - PT Pancaran Logistik Indonesia' }
-                ]}
+                options={masterData
+                  .filter(m => m.category === 'Entity' && m.isActive)
+                  .map(m => ({
+                    value: m.code,
+                    label: `${m.code} - ${m.name}`
+                  }))}
               />
             </div>
           </div>

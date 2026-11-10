@@ -86,7 +86,8 @@ export const CustomerFinancialTab: React.FC<CustomerFinancialTabProps> = ({ cust
     currentUser,
     canViewFinancial,
     canEditFinancial,
-    operationalProfiles
+    operationalProfiles,
+    masterData
   } = useApp();
 
   // Permission Checks
@@ -418,9 +419,9 @@ export const CustomerFinancialTab: React.FC<CustomerFinancialTabProps> = ({ cust
               onChange={(e) => setSelectedEntity(e.target.value)}
               options={[
                 { value: 'ALL', label: 'All Entities' },
-                { value: 'PETRA', label: 'PETRA' },
-                { value: 'PDT', label: 'PDT' },
-                { value: 'PLI', label: 'PLI' }
+                ...masterData
+                  .filter(m => m.category === 'Entity' && m.isActive)
+                  .map(m => ({ value: m.code, label: m.code }))
               ]}
             />
           </div>

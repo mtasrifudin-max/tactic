@@ -1,6 +1,6 @@
 export type UserRole = 'Super Admin' | 'Head of Department' | 'Business Development' | 'Key Account Management';
 
-export type EntityId = 'PETRA' | 'PDT' | 'PLI';
+export type EntityId = 'PETRA' | 'PDT' | 'PLI' | (string & {});
 
 export interface EntityInfo {
   id: EntityId;

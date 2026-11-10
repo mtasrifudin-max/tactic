@@ -16,7 +16,7 @@ export const AddOperationalProfileModal: React.FC<AddOperationalProfileModalProp
   customer,
   profileToEdit
 }) => {
-  const { addOperationalProfile, updateOperationalProfile, showToast, currentUser, validateAvailabilityBreakdown } = useApp();
+  const { addOperationalProfile, updateOperationalProfile, showToast, currentUser, validateAvailabilityBreakdown, masterData } = useApp();
 
   // Form Fields - Project Section
   const [entity, setEntity] = useState<EntityId>('PDT');
@@ -225,9 +225,13 @@ export const AddOperationalProfileModal: React.FC<AddOperationalProfileModalProp
                   onChange={(e) => setEntity(e.target.value as EntityId)}
                   className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0070C0] focus:border-[#0070C0]"
                 >
-                  <option value="PETRA">PETRA (Bulk Logistics & Mining Haulage)</option>
-                  <option value="PDT">PDT (Land Transport & Dedicated Trucking)</option>
-                  <option value="PLI">PLI (Integrated Logistics & Warehousing)</option>
+                  {masterData
+                    .filter(m => m.category === 'Entity' && m.isActive)
+                    .map(m => (
+                      <option key={m.code} value={m.code}>
+                        {m.code} — {m.name}
+                      </option>
+                    ))}
                 </select>
               </div>
 

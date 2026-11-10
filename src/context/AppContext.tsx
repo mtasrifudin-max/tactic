@@ -232,7 +232,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Synchronously purge persisted transaction data so user gets a 100% clean-slate empty state
 if (typeof window !== 'undefined') {
-  const PURGE_KEY = 'cms_clean_slate_active_v10';
+  const PURGE_KEY = 'cms_clean_slate_active_v11';
   if (localStorage.getItem(PURGE_KEY) !== 'true') {
     const keysToPurge = [
       'cms_customers',
@@ -244,7 +244,8 @@ if (typeof window !== 'undefined') {
       'cms_contracts',
       'cms_operational_profiles',
       'cms_customer_financial_monthly',
-      'cms_notifications'
+      'cms_notifications',
+      'cms_users'
     ];
     keysToPurge.forEach(k => {
       try {
@@ -332,21 +333,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const availableEntities: EntityInfo[] = useMemo(() => {
     const codes = Object.keys(entitiesMap) as EntityId[];
-    const assigned = currentUser.assignedEntities && currentUser.assignedEntities.length > 0
-      ? currentUser.assignedEntities
-      : codes;
-    return assigned.map(code => entitiesMap[code]).filter(Boolean);
-  }, [currentUser, entitiesMap]);
+    return codes.map(code => entitiesMap[code]).filter(Boolean);
+  }, [entitiesMap]);
 
-  // If active selectedEntity is not in user's assigned entities, reset to 'ALL'
+  // If active selectedEntity is not in master entities, reset to 'ALL'
   useEffect(() => {
     if (selectedEntity !== 'ALL') {
-      const assigned = currentUser.assignedEntities || [];
-      if (assigned.length > 0 && !assigned.includes(selectedEntity)) {
+      const activeCodes = masterData.filter(m => m.category === 'Entity' && m.isActive).map(m => m.code);
+      if (activeCodes.length > 0 && !activeCodes.includes(selectedEntity)) {
         setSelectedEntity('ALL');
       }
     }
-  }, [currentUser, selectedEntity]);
+  }, [masterData, selectedEntity]);
 
   useEffect(() => {
     localStorage.setItem('cms_selected_entity', JSON.stringify(selectedEntity));
@@ -1377,22 +1375,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     return [currentUser.id];
   }, [users, managedDepartments, currentUser]);
 
-  // User permitted entities
+  // Active Master Data entities
   const userPermittedEntities: EntityId[] = useMemo(() => {
-    if (currentUser.role === 'Super Admin') {
-      return ['PETRA', 'PDT', 'PLI'];
-    }
-    return currentUser.assignedEntities && currentUser.assignedEntities.length > 0
-      ? currentUser.assignedEntities
-      : (['PETRA', 'PDT', 'PLI'] as EntityId[]);
-  }, [currentUser]);
+    const activeEntities = masterData
+      .filter(m => m.category === 'Entity' && m.isActive)
+      .map(m => m.code as EntityId);
+    return activeEntities.length > 0 ? activeEntities : (['PETRA', 'PDT', 'PLI'] as EntityId[]);
+  }, [masterData]);
 
   // Helper filter function for multi-entity
   const matchesEntityFilter = (itemEntity?: EntityId) => {
     if (!itemEntity) return true;
-    // 1. Must be among user's permitted entities
-    if (!userPermittedEntities.includes(itemEntity)) return false;
-    // 2. If specific entity selected, must match it
+    // If specific entity selected, must match it
     if (selectedEntity !== 'ALL') {
       return itemEntity === selectedEntity;
     }

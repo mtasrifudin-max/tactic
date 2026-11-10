@@ -31,17 +31,24 @@ export const CreatePicaModal: React.FC<CreatePicaModalProps> = ({
     setPicaPreselectedCustomerId,
     showToast,
     openPicaDetail,
-    entitiesMap
+    entitiesMap,
+    masterData
   } = useApp();
 
-  // Permitted entities
-  const permittedEntities = useMemo(() => {
-    const codes = Object.keys(entitiesMap) as EntityId[];
-    const assigned = currentUser.assignedEntities && currentUser.assignedEntities.length > 0
-      ? currentUser.assignedEntities
-      : codes;
-    return assigned.map(id => entitiesMap[id]).filter(Boolean);
-  }, [currentUser, entitiesMap]);
+  // Directly derive all operating entities from Master Data Entity dictionary
+  const masterEntities = useMemo(() => {
+    const items = masterData.filter(m => m.category === 'Entity' && m.isActive);
+    if (items.length > 0) {
+      return items.map(m => ({
+        id: m.code as EntityId,
+        code: m.code,
+        name: m.code,
+        fullName: m.name,
+        description: m.description || ''
+      }));
+    }
+    return Object.values(entitiesMap);
+  }, [masterData, entitiesMap]);
 
   const [entity, setEntity] = useState<EntityId>('PDT');
   const [customerId, setCustomerId] = useState('');
@@ -63,7 +70,7 @@ export const CreatePicaModal: React.FC<CreatePicaModalProps> = ({
       const nextWeek = new Date(today);
       nextWeek.setDate(nextWeek.getDate() + 7);
 
-      const defaultEnt = (selectedEntity !== 'ALL' ? selectedEntity : (currentUser.assignedEntities?.[0] || 'PDT')) as EntityId;
+      const defaultEnt = (selectedEntity !== 'ALL' ? selectedEntity : (masterEntities[0]?.id || 'PDT')) as EntityId;
       setEntity(defaultEnt);
 
       const targetCustId = picaPreselectedCustomerId || (customers[0]?.id || '');
@@ -178,9 +185,9 @@ export const CreatePicaModal: React.FC<CreatePicaModalProps> = ({
               value={entity}
               onChange={(e) => setEntity(e.target.value as EntityId)}
             >
-              {permittedEntities.map(ent => (
+              {masterEntities.map(ent => (
                 <option key={ent.id} value={ent.id}>
-                  {ent.name} — {ent.fullName}
+                  {ent.code} — {ent.fullName}
                 </option>
               ))}
             </Select>
