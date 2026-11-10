@@ -1,0 +1,8 @@
+{
+  "name": "Tactic",
+  "description": "Internal Commercial CRM for customer management, opportunity pipeline, daily activities, follow-up, and PICA management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
